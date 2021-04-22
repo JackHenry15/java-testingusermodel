@@ -1,6 +1,7 @@
 package com.lambdaschool.usermodel.services;
 
 import com.lambdaschool.usermodel.UserModelApplicationTesting;
+import com.lambdaschool.usermodel.exceptions.ResourceNotFoundException;
 import com.lambdaschool.usermodel.models.Role;
 import com.lambdaschool.usermodel.models.User;
 import com.lambdaschool.usermodel.models.UserRoles;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
@@ -146,7 +148,7 @@ public class UserServiceImplUnitTestNoDB {
 
         assertEquals("test admin", userService.findUserById(1).getUsername());
     }
-    @Test
+    @Test(expected = ResourceNotFoundException.class)
     public void findUserByIdNotFound() {
         Mockito.when(userRepository.findById(1000L))
                 .thenReturn(Optional.empty());
@@ -174,7 +176,23 @@ public class UserServiceImplUnitTestNoDB {
     }
 
     @Test
-    public void save() {
+    public void savePost() {
+        User newUser = new User("Jeff", "wahhooo", "jeff@email.com");
+        Role r1 = new Role("admin");
+        r1.setRoleid(1);
+
+        newUser.getUseremails().add(new Useremail( newUser, "kevin@kevin.com"));
+        newUser.getRoles().add(new UserRoles(newUser, r1));
+
+        Mockito.when(roleRepository.findById(4L))
+                .thenReturn(Optional.of(r1));
+
+        Mockito.when(userRepository.save(any(User.class)))
+                .thenReturn(newUser);
+
+        User addUser = userService.save(newUser);
+        assertNotNull(newUser);
+        assertEquals(newUser.getUsername(), addUser.getUsername());
     }
 
     @Test
