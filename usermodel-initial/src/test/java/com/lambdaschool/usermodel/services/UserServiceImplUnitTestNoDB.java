@@ -34,11 +34,16 @@ public class UserServiceImplUnitTestNoDB {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RoleService roleService;
+
     @MockBean
     private UserRepository userRepository;
 
     @MockBean
     private RoleRepository roleRepository;
+
+    @MockBean HelperFunctions helperFunctions;
 
 
     //mock db
@@ -167,18 +172,46 @@ public class UserServiceImplUnitTestNoDB {
     public void findAll() {
         Mockito.when(userRepository.findAll())
                 .thenReturn(userList);
+
+        assertEquals(5,userService.findAll().size());
     }
 
     @Test
     public void delete() {
-    }
+        Mockito.when(userRepository.findById(10L))
+                .thenReturn(Optional.of(userList.get(0)));
+        Mockito.doNothing()
+                .when(userRepository)
+                .deleteById(10L);
 
+        userService.delete(10L);
+        assertEquals(5,userList.size());
+    }
+    @Test(expected = ResourceNotFoundException.class)
+    public void notFoundDelete() {
+        Mockito.when(userRepository.findById(10L))
+                .thenReturn(Optional.empty());
+        Mockito.doNothing()
+                .when(userRepository)
+                .deleteById(10L);
+
+        userService.delete(10L);
+        assertEquals(5,userList.size());
+    }
     @Test
     public void findByName() {
         Mockito.when(userRepository.findByUsername("test admin"))
-                .thenReturn(Optional.of(userList);
+                .thenReturn(userList.get(0));
 
-        assertEquals("test admin", userService.findUserById(1).getUsername());
+        assertEquals("test admin", userService.findByName("test admin").getUsername());
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void findByNameNotFound() {
+        Mockito.when(userRepository.findByUsername("nonsense"))
+                .thenReturn(null);
+
+        assertEquals("nonsense", userService.findByName("nonsense").getUsername());
     }
 
     @Test
@@ -204,7 +237,28 @@ public class UserServiceImplUnitTestNoDB {
         assertNotNull(newUser);
         assertEquals(newUser.getUsername().toLowerCase(), addUser.getUsername().toLowerCase());
     }
+    @Test
+    public void savePut() {
 
+        Role r2 = new Role("user");
+        r2.setRoleid(1L);
+
+        User newUser = new User("Jeff", "password", "jeff@email.com");
+        newUser.getRoles().add(new UserRoles(newUser, r2));
+        newUser.getUseremails().add(new Useremail( newUser, "kevin@kevin.com"));
+        newUser.setUserid(103L);
+
+        Mockito.when(roleService.findRoleById(1L))
+                .thenReturn(r2);
+        Mockito.when(userRepository.findById(103L))
+                .thenReturn(Optional.of(newUser));
+        Mockito.when(userRepository.save(any(User.class)))
+                .thenReturn(newUser);
+
+
+        assertEquals(103L, userService.save(newUser).getUserid());
+
+    }
     @Test
     public void update() {
     }
