@@ -160,11 +160,13 @@ public class UserServiceImplUnitTestNoDB {
     public void findByNameContaining() {
         Mockito.when(userRepository.findByUsernameContainingIgnoreCase("cinn"))
                 .thenReturn(userList);
-        assertEquals(1, userService.findByNameContaining("cinn").size());
+        assertEquals(5, userService.findByNameContaining("cinn").size());
     }
 
     @Test
     public void findAll() {
+        Mockito.when(userRepository.findAll())
+                .thenReturn(userList);
     }
 
     @Test
@@ -173,26 +175,34 @@ public class UserServiceImplUnitTestNoDB {
 
     @Test
     public void findByName() {
+        Mockito.when(userRepository.findByUsername("test admin"))
+                .thenReturn(Optional.of(userList);
+
+        assertEquals("test admin", userService.findUserById(1).getUsername());
     }
 
     @Test
     public void savePost() {
-        User newUser = new User("Jeff", "wahhooo", "jeff@email.com");
+
         Role r1 = new Role("admin");
-        r1.setRoleid(1);
+        r1.setRoleid(10);
 
-        newUser.getUseremails().add(new Useremail( newUser, "kevin@kevin.com"));
+        User newUser = new User("Jeff", "password", "jeff@email.com");
         newUser.getRoles().add(new UserRoles(newUser, r1));
-
-        Mockito.when(roleRepository.findById(4L))
-                .thenReturn(Optional.of(r1));
+        newUser.getUseremails().add(new Useremail( newUser, "kevin@kevin.com"));
+        newUser.getUseremails().get(0).setUseremailid(31);
+        newUser.getUseremails().add(new Useremail( newUser, "jeff@jeff.com"));
+        newUser.getUseremails().get(1).setUseremailid(32);
 
         Mockito.when(userRepository.save(any(User.class)))
                 .thenReturn(newUser);
+        Mockito.when(roleRepository.findById(10L))
+                .thenReturn(Optional.of(r1));
+
 
         User addUser = userService.save(newUser);
         assertNotNull(newUser);
-        assertEquals(newUser.getUsername(), addUser.getUsername());
+        assertEquals(newUser.getUsername().toLowerCase(), addUser.getUsername().toLowerCase());
     }
 
     @Test
